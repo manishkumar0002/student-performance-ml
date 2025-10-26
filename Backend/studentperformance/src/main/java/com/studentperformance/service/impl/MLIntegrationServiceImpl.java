@@ -5,16 +5,11 @@ import com.studentperformance.service.MLIntegrationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class MLIntegrationServiceImpl implements MLIntegrationService {
@@ -24,10 +19,8 @@ public class MLIntegrationServiceImpl implements MLIntegrationService {
     private final RestTemplate restTemplate;
     private final String mlServiceUrl;
 
-    public MLIntegrationServiceImpl(
-            RestTemplate restTemplate,
-            @Value("${ml.service.url}") String mlServiceUrl
-    ) {
+    public MLIntegrationServiceImpl(RestTemplate restTemplate,
+                                    @Value("${ml.service.url:http://localhost:5000/predict}") String mlServiceUrl) {
         this.restTemplate = restTemplate;
         this.mlServiceUrl = mlServiceUrl;
     }
@@ -35,36 +28,26 @@ public class MLIntegrationServiceImpl implements MLIntegrationService {
     @Override
     public Map<String, Object> predict(Map<String, Object> features) {
         try {
-            logger.info("🔗 Calling ML service at: {}", mlServiceUrl);
-            logger.debug("📤 Request payload: {}", features);
+            logger.info("🔗 Sending data to ML service at {}", mlServiceUrl);
+            logger.debug("📤 Features: {}", features);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // ✅ Send payload to Flask
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(features, headers);
 
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                    mlServiceUrl,
-                    request,
-                    Map.class
-            );
+            ResponseEntity<Map> response = restTemplate.postForEntity(mlServiceUrl, request, Map.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                logger.info("✅ ML service responded successfully");
-                logger.debug("📥 Response from ML: {}", response.getBody());
-                return new HashMap<>(response.getBody());
+                logger.info("✅ Received response from ML service");
+                return response.getBody();
             } else {
-                logger.error("❌ ML service returned non-OK status: {}", response.getStatusCode());
                 throw new MLServiceException("ML service returned non-OK status: " + response.getStatusCode());
             }
 
-        } catch (RestClientException ex) {
-            logger.error("🚫 Error calling ML service: {}", ex.getMessage(), ex);
-            throw new MLServiceException("Failed to connect to ML service: " + ex.getMessage(), ex);
         } catch (Exception ex) {
-            logger.error("💥 Unexpected error in ML service integration: {}", ex.getMessage(), ex);
-            throw new MLServiceException("Unexpected error in ML prediction: " + ex.getMessage(), ex);
+            logger.error("🚫 Error contacting ML service: {}", ex.getMessage(), ex);
+            throw new MLServiceException("Error contacting ML service: " + ex.getMessage(), ex);
         }
     }
 }

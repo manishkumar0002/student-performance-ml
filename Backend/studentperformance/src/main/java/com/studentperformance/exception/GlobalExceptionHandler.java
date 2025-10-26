@@ -22,130 +22,144 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleResourceNotFound(
-            ResourceNotFoundException ex, 
+            ResourceNotFoundException ex,
             HttpServletRequest req) {
         logger.warn("Resource not found: {}", ex.getMessage());
         ApiError apiError = new ApiError(
-            HttpStatus.NOT_FOUND.value(), 
-            "Not Found", 
-            ex.getMessage(), 
-            req.getRequestURI()
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                ex.getMessage(),
+                req.getRequestURI()
         );
         return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handleResourceAlreadyExists(
+            ResourceAlreadyExistsException ex,
+            HttpServletRequest req) {
+        logger.warn("Resource already exists: {}", ex.getMessage());
+        ApiError apiError = new ApiError(
+                HttpStatus.CONFLICT.value(), // 409 Conflict
+                "Resource Already Exists",
+                ex.getMessage(),
+                req.getRequestURI()
+        );
+        return new ResponseEntity<>(apiError, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationErrors(
-            MethodArgumentNotValidException ex, 
+            MethodArgumentNotValidException ex,
             HttpServletRequest req) {
         ApiError apiError = new ApiError(
-            HttpStatus.BAD_REQUEST.value(), 
-            "Validation Error", 
-            "Input validation failed", 
-            req.getRequestURI()
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                "Input validation failed",
+                req.getRequestURI()
         );
-        
+
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             apiError.addDetail(error.getField() + ": " + error.getDefaultMessage());
         }
-        
+
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> handleTypeMismatch(
-            MethodArgumentTypeMismatchException ex, 
+            MethodArgumentTypeMismatchException ex,
             HttpServletRequest req) {
-        String message = String.format("Invalid value '%s' for parameter '%s'", 
-            ex.getValue(), ex.getName());
+        String message = String.format("Invalid value '%s' for parameter '%s'",
+                ex.getValue(), ex.getName());
         ApiError apiError = new ApiError(
-            HttpStatus.BAD_REQUEST.value(), 
-            "Type Mismatch", 
-            message, 
-            req.getRequestURI()
+                HttpStatus.BAD_REQUEST.value(),
+                "Type Mismatch",
+                message,
+                req.getRequestURI()
         );
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({DataAccessException.class, PersistenceException.class})
     public ResponseEntity<ApiError> handleDatabaseErrors(
-            Exception ex, 
+            Exception ex,
             HttpServletRequest req) {
         logger.error("Database error occurred", ex);
         ApiError apiError = new ApiError(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(), 
-            "Database Error", 
-            "An error occurred while accessing the database", 
-            req.getRequestURI()
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Database Error",
+                "An error occurred while accessing the database",
+                req.getRequestURI()
         );
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(MLServiceException.class)
     public ResponseEntity<ApiError> handleMLServiceError(
-            MLServiceException ex, 
+            MLServiceException ex,
             HttpServletRequest req) {
         logger.error("ML Service error", ex);
         ApiError apiError = new ApiError(
-            HttpStatus.BAD_GATEWAY.value(), 
-            "ML Service Error", 
-            ex.getMessage(), 
-            req.getRequestURI()
+                HttpStatus.BAD_GATEWAY.value(),
+                "ML Service Error",
+                ex.getMessage(),
+                req.getRequestURI()
         );
         return new ResponseEntity<>(apiError, HttpStatus.BAD_GATEWAY);
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiError> handleAuthenticationError(
-            AuthenticationException ex, 
+            AuthenticationException ex,
             HttpServletRequest req) {
         logger.warn("Authentication failed: {}", ex.getMessage());
         ApiError apiError = new ApiError(
-            HttpStatus.UNAUTHORIZED.value(), 
-            "Unauthorized", 
-            "Authentication failed", 
-            req.getRequestURI()
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                "Authentication failed",
+                req.getRequestURI()
         );
         return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(
-            AccessDeniedException ex, 
+            AccessDeniedException ex,
             HttpServletRequest req) {
         logger.warn("Access denied: {}", ex.getMessage());
         ApiError apiError = new ApiError(
-            HttpStatus.FORBIDDEN.value(), 
-            "Forbidden", 
-            "You don't have permission to access this resource", 
-            req.getRequestURI()
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                "You don't have permission to access this resource",
+                req.getRequestURI()
         );
         return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgument(
-            IllegalArgumentException ex, 
+            IllegalArgumentException ex,
             HttpServletRequest req) {
         ApiError apiError = new ApiError(
-            HttpStatus.BAD_REQUEST.value(), 
-            "Invalid Argument", 
-            ex.getMessage(), 
-            req.getRequestURI()
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid Argument",
+                ex.getMessage(),
+                req.getRequestURI()
         );
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGenericError(
-            Exception ex, 
+            Exception ex,
             HttpServletRequest req) {
         logger.error("Unhandled exception occurred", ex);
         ApiError apiError = new ApiError(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(), 
-            "Internal Server Error", 
-            "An unexpected error occurred", 
-            req.getRequestURI()
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal Server Error",
+                "An unexpected error occurred",
+                req.getRequestURI()
         );
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }

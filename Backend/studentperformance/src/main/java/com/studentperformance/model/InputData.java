@@ -8,12 +8,11 @@ import lombok.Setter;
 public class InputData {
 
     private double attendance;
-    private double marks;
-    private double subjectScore;
+    private double avgMarks;
     private double studyHours;
 
-    // ✅ Converts fields into array format expected by Flask
+    // ✅ Converts fields into list format expected by Flask
     public double[] toFeatureArray() {
-        return new double[]{attendance, marks, subjectScore, studyHours};
+        return new double[]{attendance, avgMarks, studyHours};
     }
 }

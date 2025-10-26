@@ -5,21 +5,16 @@ import com.studentperformance.model.User;
 import com.studentperformance.security.JwtUtil;
 import com.studentperformance.service.AuthenticateService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,7 +24,6 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final AuthenticateService authenticateService;
 
-    @Autowired
     public AuthController(AuthenticationManager authenticationManager,
                           JwtUtil jwtUtil,
                           AuthenticateService authenticateService) {
@@ -59,16 +53,12 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(token, userDetails.getUsername()));
     }
 
-    // DTO Classes
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class LoginRequest {
-        @NotBlank(message = "Username is required")
         private String username;
-
-        @NotBlank(message = "Password is required")
         private String password;
     }
 
